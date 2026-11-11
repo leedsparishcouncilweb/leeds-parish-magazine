@@ -34,7 +34,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add docs/library.json docs/pdfs docs/covers
+          git add docs/library.json docs/pdfs docs/covers docs/links
           if ! git diff --cached --quiet; then
             git commit -m 'Refresh published magazine editions'
             git push
