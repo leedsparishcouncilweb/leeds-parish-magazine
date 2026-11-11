@@ -19,7 +19,7 @@ function stripReferralTracking(){
 }
 stripReferralTracking();
 const $=id=>document.getElementById(id);
-const state={issues:[],selected:null,pdf:null,flip:null,token:0,leaves:[],drawn:new Set(),drawing:new Map(),pdfjs:null,loadingTask:null,zoomRender:null,zoomPage:0,zoomScale:1};
+const state={issues:[],selected:null,pdf:null,flip:null,token:0,leaves:[],drawn:new Set(),drawing:new Map(),pdfjs:null,loadingTask:null,linkMaps:{},zoomRender:null,zoomPage:0,zoomScale:1};
 const pdfLib=async()=>{if(!state.pdfjs){const lib=await import("https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs");lib.GlobalWorkerOptions.workerSrc="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs";state.pdfjs=lib}return state.pdfjs};
 const safe=s=>String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const sortIssues=(a,b)=>(b.editionDate||"").localeCompare(a.editionDate||"")||a.title.localeCompare(b.title);
@@ -62,6 +62,56 @@ function archive(){
   button.append(cover,details);button.addEventListener("click",()=>selectIssue(issue));list.append(button);
  }
 }
+// Each synced PDF has a small JSON map containing the positions of its
+// existing PDF links and any website/email addresses in selectable text.
+// Click targets sit above the canvas without altering the PDF itself.
+function attachPageLinks(index){
+ const hits=state.linkMaps[String(index+1)];
+ const leaf=state.leaves[index];
+ if(!Array.isArray(hits)||!hits.length||!leaf?.querySelector("canvas")||leaf.querySelector(".magazine-link-layer"))return;
+ const layer=document.createElement("div");
+ layer.className="magazine-link-layer";
+ for(const hit of hits){
+  if(!Array.isArray(hit.box)||hit.box.length!==4)continue;
+  let url;
+  try{url=new URL(hit.href,location.href)}
+  catch(e){continue}
+  if(!["https:","http:","mailto:"].includes(url.protocol))continue;
+  const [x0,y0,x1,y1]=hit.box.map(Number);
+  if(![x0,y0,x1,y1].every(Number.isFinite)||x1<=x0||y1<=y0)continue;
+  const link=document.createElement("a");
+  link.className="magazine-link";
+  link.href=url.href;
+  link.target=url.protocol==="mailto:"?"_self":"_blank";
+  if(url.protocol!=="mailto:")link.rel="noopener noreferrer";
+  link.setAttribute("aria-label",hit.label||hit.href);
+  link.title=hit.label||hit.href;
+  link.style.left=(100*x0)+"%";
+  link.style.top=(100*y0)+"%";
+  link.style.width=(100*Math.min(1,x1)-100*x0)+"%";
+  link.style.height=(100*Math.min(1,y1)-100*y0)+"%";
+  // PageFlip normally treats taps/drags within a page as a page-turn gesture.
+  // Stop those listeners when the visitor taps an actual hyperlink.
+  for(const type of ["pointerdown","pointerup","mousedown","mouseup","touchstart","touchend","click"]){
+   link.addEventListener(type,e=>e.stopPropagation(),{passive:true});
+  }
+  layer.append(link);
+ }
+ if(layer.childElementCount)leaf.append(layer);
+}
+function loadPageLinks(issue,token){
+ if(!issue.links)return;
+ fetch(issue.links,{cache:"no-store"}).then(response=>{
+  if(!response.ok)throw Error("Link map unavailable");
+  return response.json();
+ }).then(result=>{
+  if(token!==state.token)return;
+  state.linkMaps=result.pages||{};
+  for(const index of state.drawn)attachPageLinks(index);
+ }).catch(e=>{
+  if(token===state.token)console.warn("Clickable links unavailable for this issue",e);
+ });
+}
 async function selectIssue(issue){
  const token=++state.token;state.selected=issue;
  resetInlineZoom();
@@ -95,7 +145,8 @@ async function selectIssue(issue){
  newBook.id="flipbook";
  newBook.className="flipbook";
  stage.replaceChildren(newBook);
- state.leaves=[];state.drawn.clear();state.drawing.clear();
+ state.leaves=[];state.drawn.clear();state.drawing.clear();state.linkMaps={};
+ loadPageLinks(issue,token);
  try{
   const lib=await pdfLib();if(!window.St?.PageFlip)throw Error("Page-turn library unavailable");
   const task=lib.getDocument({url:issue.url});
@@ -150,7 +201,7 @@ async function draw(index,token){
   const canvas=document.createElement("canvas");canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
   await page.render({canvasContext:canvas.getContext("2d",{alpha:false}),viewport}).promise;
   if(token!==state.token)return;
-  state.leaves[index]?.replaceChildren(canvas);state.drawn.add(index);page.cleanup();
+  state.leaves[index]?.replaceChildren(canvas);state.drawn.add(index);attachPageLinks(index);page.cleanup();
  })();
  state.drawing.set(index,job);
  try{await job}catch(e){if(token===state.token)console.warn("Page render",index,e)}finally{if(state.drawing.get(index)===job)state.drawing.delete(index)}
@@ -217,7 +268,7 @@ $("zoomOut").addEventListener("click",()=>changeZoom(-.25));
 $("zoomReset").addEventListener("click",resetInlineZoom);
 const zoomViewport=$("bookViewport");
 zoomViewport.addEventListener("pointerdown",e=>{
- if(inlineZoom.level<=1||e.button!==0)return;
+ if(inlineZoom.level<=1||e.button!==0||e.target.closest(".magazine-link"))return;
  inlineZoom.pointer={id:e.pointerId,startX:e.clientX,startY:e.clientY,x:inlineZoom.x,y:inlineZoom.y};
  zoomViewport.classList.add("is-dragging");
  zoomViewport.setPointerCapture(e.pointerId);
