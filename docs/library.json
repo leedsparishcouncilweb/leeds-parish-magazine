@@ -9,7 +9,8 @@
       "sourceTitle": "November 2026 - Leeds & Broomfield Parish Magazine",
       "url": "pdfs/november-2026-cf08f3bcd260.pdf",
       "sourceUrl": "https://www.leedsparishcouncil.gov.uk/shared/attachments.asp?f=741a8f6b%2D12f6%2D4775%2D821f%2D794c4bd5c03d%2Epdf&o=Leeds%2DBroomfield%2DNov%2D2026%2DHugoFox%2D8MB%2Epdf",
-      "cover": "covers/november-2026-cf08f3bcd260.png"
+      "cover": "covers/november-2026-cf08f3bcd260.png",
+      "links": "links/november-2026-cf08f3bcd260.json"
     },
     {
       "id": "october-2026",
@@ -18,7 +19,8 @@
       "sourceTitle": "October 2026 - Leeds & Broomfield Parish Magazine",
       "url": "pdfs/october-2026-45506e428fbe.pdf",
       "sourceUrl": "https://www.leedsparishcouncil.gov.uk/shared/attachments.asp?f=36320197-00d7-4b7f-aa68-ae94cba6bc5c.pdf&o=Leeds-%26-Broomfield-Oct-26-Digital.pdf",
-      "cover": "covers/october-2026-45506e428fbe.png"
+      "cover": "covers/october-2026-45506e428fbe.png",
+      "links": "links/october-2026-45506e428fbe.json"
     },
     {
       "id": "september-2026",
@@ -27,7 +29,8 @@
       "sourceTitle": "September 2026 - Leeds & Broomfield Parish Magazine",
       "url": "pdfs/september-2026-4dfa63aa3ea1.pdf",
       "sourceUrl": "https://www.leedsparishcouncil.gov.uk/shared/attachments.asp?f=c45d5a76-d09b-4918-b8ec-15a3b1101163.pdf&o=Leeds-%26-Broomfield-Sept-2026-digital.pdf",
-      "cover": "covers/september-2026-4dfa63aa3ea1.png"
+      "cover": "covers/september-2026-4dfa63aa3ea1.png",
+      "links": "links/september-2026-4dfa63aa3ea1.json"
     },
     {
       "id": "july-2026",
@@ -36,7 +39,8 @@
       "sourceTitle": "July 2026 - Leeds & Broomfield Parish Magazine",
       "url": "pdfs/july-2026-8ac77b874aa9.pdf",
       "sourceUrl": "https://www.leedsparishcouncil.gov.uk/shared/attachments.asp?f=fd891bf2-4786-41dd-a24b-a5d289901381.pdf&o=July-2026.pdf",
-      "cover": "covers/july-2026-8ac77b874aa9.png"
+      "cover": "covers/july-2026-8ac77b874aa9.png",
+      "links": "links/july-2026-8ac77b874aa9.json"
     },
     {
       "id": "august-2022",
@@ -45,7 +49,8 @@
       "sourceTitle": "August 2022 - Leeds & Broomfield Parish Magazine",
       "url": "pdfs/august-2022-c37f71817eba.pdf",
       "sourceUrl": "https://www.leedsparishcouncil.gov.uk/shared/attachments.asp?f=e39067e2-fc8c-4c45-b3ad-07c9d6f3d810.pdf&o=Aug-2022.pdf",
-      "cover": "covers/august-2022-c37f71817eba.png"
+      "cover": "covers/august-2022-c37f71817eba.png",
+      "links": "links/august-2022-c37f71817eba.json"
     }
   ]
 }
