@@ -28,7 +28,7 @@ S.headers.update({"User-Agent":"Mozilla/5.0 (compatible; LeedsVillageMagazine/1.
 
 def pdf_link(url):
     parsed=urlparse(url)
-    return parsed.scheme in ("https","http") and ".pdf" in (parsed.path+"?"+parsed.query).lower()
+    return parsed.scheme in ("https","http") and ".pdf" in unquote(parsed.path+"?"+parsed.query).lower()
 
 def clean(text):
     return re.sub(r"\s+"," ",text or "").strip()
