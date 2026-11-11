@@ -1,0 +1,31 @@
+name: Browser smoke test
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/app.js'
+      - 'docs/index.html'
+      - 'docs/styles.css'
+      - 'scripts/test_reader.cjs'
+      - '.github/workflows/reader-smoke-test.yml'
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install headless test browser
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Test reader against the actual magazine PDFs
+        run: |
+          python3 -m http.server 8765 --directory docs >/tmp/magazine-server.log 2>&1 &
+          sleep 2
+          node scripts/test_reader.cjs
