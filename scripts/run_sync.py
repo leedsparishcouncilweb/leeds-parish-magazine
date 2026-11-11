@@ -21,6 +21,12 @@ def links_from_page(source):
         pos=html.lower().find(phrase.lower())
         if pos!=-1:
             print("Attachment markup around",phrase,repr(html[max(0,pos-950):pos+420]))
+    # Public-page diagnostics for locating the JavaScript-populated file list.
+    main=soup.find(id="main-content-bookmark") or soup.find("main")
+    if main:
+        print("MAIN OUTER HTML:",str(main.parent if main.name=="a" else main)[:11000])
+    print("SCRIPTS:",[(x.get("src") or "") for x in soup.find_all("script") if x.get("src")][-35:])
+    print("HTML TAIL:",html[-3500:])
     result={}
     # Parse URLs in any HTML attributes, not only links: Hugo Fox sometimes
     # embeds attachment references in data attributes and script JSON.
