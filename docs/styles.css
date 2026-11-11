@@ -81,6 +81,19 @@ footer{background:#173d2e;color:#d3dfd2;padding:29px 5%;text-align:center;font-s
  .embedded .reading-surface{height:126vw}
 }
 
+/* Mobile Safari: prevent a rapid page-turn tap from becoming smart/double-tap zoom.
+   Unlike disabling viewport scaling, manipulation preserves pinch-to-zoom. */
+@media (hover:none) and (pointer:coarse){
+ .reader-shell,.reading-surface,.page-arrow,.reader-toolbar button{
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+ }
+ .page-arrow{
+  -webkit-user-select:none;
+  user-select:none;
+ }
+}
+
 /* Phone-first reading layout: full-width portrait pages, minimal chrome. */
 @media(max-width:770px){
  .site-header{height:62px;padding:0 12px;gap:10px}
@@ -102,7 +115,7 @@ footer{background:#173d2e;color:#d3dfd2;padding:29px 5%;text-align:center;font-s
  .reader-shell{border-radius:5px;box-shadow:0 3px 12px #182d2112}
  .reading-surface{height:auto;aspect-ratio:.704;min-height:0;max-height:none;padding:4px 6px;background:#fff}
  .book-viewport{height:100%}
- .page-arrow{width:32px;height:54px;top:50%;transform:translateY(-50%);font-size:32px;background:#fffffff0;box-shadow:0 1px 6px #0002}
+ .page-arrow{width:44px;height:60px;top:50%;transform:translateY(-50%);font-size:32px;background:#fffffff0;box-shadow:0 1px 6px #0002;z-index:15}
  .page-arrow.left{left:0}.page-arrow.right{right:0}
  .reader-toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto auto;column-gap:9px;row-gap:10px;padding:12px 10px;min-height:0;align-items:center}
  .reader-toolbar #pageStatus{grid-column:1;grid-row:1;font-size:12px;font-weight:700}
