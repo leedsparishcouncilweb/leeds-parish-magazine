@@ -1,74 +1,52 @@
 #!/usr/bin/env python3
-"""Hugo Fox attachment adapter, with a fallback for already published editions."""
-import re
-from html import unescape
-from pathlib import Path
-from urllib.parse import urljoin,urlparse,parse_qs,unquote
+"""Discover all public Hugo Fox magazine PDFs, including URL-encoded .pdf links."""
+from urllib.parse import urljoin, urlparse, parse_qs
 from bs4 import BeautifulSoup
 import sync_pdfs as sync
 
-original_links=sync.links_from_page
+def attachment_key(url):
+    """Use Hugo Fox's stable attachment identifier to deduplicate encoded URLs."""
+    params=parse_qs(urlparse(url).query)
+    return params.get("f",[url])[0].lower()
 
 def links_from_page(source):
     response=sync.S.get(source,timeout=50)
     response.raise_for_status()
-    html=response.text
-    soup=BeautifulSoup(html,"html.parser")
-    print("Source response:",response.status_code,"bytes:",len(html),"anchors:",len(soup.find_all("a")))
-    # Diagnostic: Hugo Fox file cards sometimes store URLs in custom markup.
-    # Keep logging short and avoid exposing cookies or other unrelated page HTML.
-    for phrase in ("Aug 2022.pdf","Oct 26 Digital.pdf","Sept 2026 digital.pdf","Nov-2026","November 2026"):
-        pos=html.lower().find(phrase.lower())
-        if pos!=-1:
-            print("Attachment markup around",phrase,repr(html[max(0,pos-950):pos+420]))
-    # Public-page diagnostics for locating the JavaScript-populated file list.
-    main=soup.find(id="main-content-bookmark") or soup.find("main")
-    if main:
-        print("MAIN OUTER HTML:",str(main.parent if main.name=="a" else main)[:11000])
-    print("SCRIPTS:",[(x.get("src") or "") for x in soup.find_all("script") if x.get("src")][-35:])
-    print("HTML TAIL:",html[-3500:])
-    # Inspect only the public main content markup, no authentication data.
-    anchor=html.find('id="main-content-bookmark"')
-    if anchor!=-1:
-        print("PUBLIC MAIN CONTENT:",repr(html[anchor:anchor+11500]))
-    result={}
-    # Parse URLs in any HTML attributes, not only links: Hugo Fox sometimes
-    # embeds attachment references in data attributes and script JSON.
-    for node in soup.find_all(True):
-        for key,value in node.attrs.items():
-            if isinstance(value,list):value=" ".join(value)
-            if not isinstance(value,str):continue
-            if not ("pdf" in value.lower() or "attachments.asp" in value.lower()):continue
-            cleaned=unescape(value.strip()).replace("\\/","/")
-            for candidate in [cleaned]:
-                if not (candidate.startswith("http") or candidate.startswith("/")):continue
-                link=urljoin(response.url,candidate.split("#")[0])
-                if sync.pdf_link(link):
-                    result.setdefault(link,sync.label_for(node,link))
-    # Look for attachment URLs inside JavaScript-embedded text.
-    for match in re.findall(r"(?:https?://[^\s\"'<>]+|/shared/attachments\.asp\?[^\s\"'<>]+)",html,re.I):
-        link=unescape(match).replace("\\/","/")
-        link=link.rstrip(");,")
-        link=urljoin(response.url,link)
-        if sync.pdf_link(link):result.setdefault(link,parse_qs(urlparse(link).query).get("o",[""])[0])
-    print("Discovered PDF URLs:",len(result))
-    if not result:
-        print("HTML sample:",re.sub(r"\s+"," ",soup.get_text(" ",strip=True))[:900])
-        print("HTML link samples:",[str(x.get("href",""))[:150] for x in soup.find_all("a",href=True)[:25]])
-    # Include every official known link until Hugo Fox starts exposing its links
-    # in a conventional form. This allows the first sync to build cover thumbnails.
-    for existing in sync.previous_seed_links():
-        result.setdefault(*existing)
-    return list(result.items())[:80]
+    soup=BeautifulSoup(response.text,"html.parser")
 
-def known():
-    try:
-        catalogue=sync.json.loads(sync.MANIFEST.read_text(encoding="utf-8"))
-    except Exception:
-        return []
-    return [(i.get("sourceUrl"),i.get("sourceTitle",i.get("title",""))) for i in catalogue.get("issues",[]) if i.get("sourceUrl")]
+    # Preserve established URLs for already imported editions; the same link
+    # can have a different percent-encoding on successive Hugo Fox requests.
+    known=sync.json.loads(sync.MANIFEST.read_text(encoding="utf-8")) if sync.MANIFEST.exists() else {"issues":[]}
+    previous=[(item.get("sourceUrl"),item.get("sourceTitle") or item.get("title",""))
+              for item in known.get("issues",[]) if item.get("sourceUrl")]
+    previous_by_id={attachment_key(url):url for url,_ in previous}
 
-sync.previous_seed_links=known
+    results=[]
+    used=set()
+    for link in soup.select(".cms-attachments a[href]"):
+        url=urljoin(response.url,link.get("href",""))
+        if not sync.pdf_link(url):continue
+        key=attachment_key(url)
+        if key in used:continue
+        used.add(key)
+        # Only the publication title, not the File Uploaded date.
+        title_tag=link.select_one(".dl-link-name")
+        label=sync.clean(title_tag.get_text(" ",strip=True)) if title_tag else sync.label_for(link,url)
+        results.append((previous_by_id.get(key,url),label))
+
+    # Retain previously available issues even if the Hugo Fox site is
+    # temporarily unavailable or removes an older attachment.
+    for url,label in previous:
+        key=attachment_key(url)
+        if key not in used:
+            results.append((url,label))
+            used.add(key)
+    print("Magazine PDFs discovered:",len(results),
+          "| currently on Hugo Fox:",len(used.intersection(
+              {attachment_key(urljoin(response.url,link.get("href","")))
+               for link in soup.select(".cms-attachments a[href]")})))
+    return results[:80]
+
 sync.links_from_page=links_from_page
 if __name__=="__main__":
     raise SystemExit(sync.main())
