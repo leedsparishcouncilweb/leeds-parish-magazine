@@ -1,6 +1,6 @@
 
 const $=id=>document.getElementById(id);
-const state={issues:[],selected:null,pdf:null,flip:null,token:0,leaves:[],drawn:new Set(),drawing:new Map(),pdfjs:null,zoomRender:null,zoomPage:0,zoomScale:1};
+const state={issues:[],selected:null,pdf:null,flip:null,token:0,leaves:[],drawn:new Set(),drawing:new Map(),pdfjs:null,loadingTask:null,zoomRender:null,zoomPage:0,zoomScale:1};
 const pdfLib=async()=>{if(!state.pdfjs){const lib=await import("https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs");lib.GlobalWorkerOptions.workerSrc="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs";state.pdfjs=lib}return state.pdfjs};
 const safe=s=>String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const sortIssues=(a,b)=>(b.editionDate||"").localeCompare(a.editionDate||"")||a.title.localeCompare(b.title);
@@ -39,19 +39,32 @@ function archive(){
 }
 async function selectIssue(issue){
  const token=++state.token;state.selected=issue;
+ resetInlineZoom();
  $("editionTitle").textContent=title(issue);$("editionKicker").textContent=issue.id===state.issues[0].id?"LATEST EDITION":"ARCHIVE EDITION";
  $("originalPDF").href=issue.sourceUrl||issue.url;$("loading").hidden=false;$("readerError").hidden=true;
  $("pageStatus").textContent="Front cover";$("totalPages").textContent="— pages";
  $("prevPage").disabled=true;$("nextPage").disabled=true;
  history.replaceState(null,"",location.pathname+location.search+"#edition="+encodeURIComponent(issue.id));archive();
+ // Cancel previous downloads and dispose previous pages without blocking this edition.
+ // In particular, waiting for old PDF.js renders to finish can stall switching.
+ const previousTask=state.loadingTask;
+ state.loadingTask=null;
+ if(previousTask){try{void previousTask.destroy().catch(()=>{})}catch(e){}}
+ const previousPdf=state.pdf;
+ state.pdf=null;
  if(state.flip){try{state.flip.destroy()}catch(e){console.warn(e)}state.flip=null}
- if(state.pdf){const old=state.pdf;state.pdf=null;try{await old.destroy()}catch(e){}}
+ if(previousPdf){try{void previousPdf.destroy().catch(()=>{})}catch(e){console.warn(e)}}
  if(token!==state.token)return;
  $("flipbook").replaceChildren();state.leaves=[];state.drawn.clear();state.drawing.clear();
  try{
   const lib=await pdfLib();if(!window.St?.PageFlip)throw Error("Page-turn library unavailable");
-  const pdf=await lib.getDocument({url:issue.url}).promise;
-  if(token!==state.token){await pdf.destroy();return}state.pdf=pdf;
+  const task=lib.getDocument({url:issue.url});
+  state.loadingTask=task;
+  let pdf;
+  try{pdf=await task.promise}
+  finally{if(state.loadingTask===task)state.loadingTask=null}
+  if(token!==state.token){void pdf.destroy().catch(()=>{});return}
+  state.pdf=pdf;
   if(!pdf.numPages)throw Error("Empty PDF");
   const first=await pdf.getPage(1),view=first.getViewport({scale:1});
   const width=400,height=Math.round(width*view.height/view.width);
@@ -75,8 +88,9 @@ async function selectIssue(issue){
   $("totalPages").textContent=pdf.numPages+" pages";$("loading").hidden=true;
   position(0);nearby(0,token);
  }catch(e){
-  if(token!==state.token)return;console.error("Magazine preview:",e);
-  error("The edition may be waiting for the first PDF sync, or the external PDF server is blocking previews.");
+  if(token!==state.token)return;
+  console.error("Magazine preview:",e);
+  error("Unable to open this edition. Please try again or open the original PDF.");
  }
 }
 async function draw(index,token){
@@ -93,7 +107,7 @@ async function draw(index,token){
   state.leaves[index]?.replaceChildren(canvas);state.drawn.add(index);page.cleanup();
  })();
  state.drawing.set(index,job);
- try{await job}catch(e){if(token===state.token)console.warn("Page render",index,e)}finally{state.drawing.delete(index)}
+ try{await job}catch(e){if(token===state.token)console.warn("Page render",index,e)}finally{if(state.drawing.get(index)===job)state.drawing.delete(index)}
 }
 function nearby(index,token){
  if(!state.pdf)return;
