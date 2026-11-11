@@ -96,6 +96,32 @@ const {chromium}=require('playwright');
   await mobile.locator('#nextPage').click();
   await mobile.waitForFunction(()=>document.querySelector('#pageStatus')?.textContent?.startsWith('Page 2'),null,{timeout:12000});
   console.log("MOBILE PAGE TURN:",await mobile.locator('#pageStatus').innerText());
+  const safariTapProtection=await mobile.evaluate(()=>{
+    const arrow=document.querySelector('#nextPage');
+    const surface=document.querySelector('.reading-surface');
+    return {
+      arrowTouchAction:getComputedStyle(arrow).touchAction,
+      surfaceTouchAction:getComputedStyle(surface).touchAction,
+      arrowWidth:arrow.getBoundingClientRect().width,
+      scale:window.visualViewport?.scale||1
+    };
+  });
+  console.log("MOBILE TAP PROTECTION:",JSON.stringify(safariTapProtection));
+  if(safariTapProtection.arrowTouchAction!=='manipulation'||
+     safariTapProtection.surfaceTouchAction!=='manipulation'||
+     safariTapProtection.arrowWidth<44)throw Error('Phone page-turn target lacks double-tap prevention');
+  // Exercise actual touch taps rather than mouse-based Playwright clicks.
+  await mobile.locator('#nextPage').tap();
+  await mobile.waitForFunction(()=>document.querySelector('#pageStatus')?.textContent?.startsWith('Page 3'),null,{timeout:12000});
+  await mobile.waitForTimeout(530);
+  await mobile.locator('#nextPage').tap();
+  await mobile.waitForTimeout(80);
+  await mobile.locator('#nextPage').tap();
+  await mobile.waitForTimeout(700);
+  const tapScale=await mobile.evaluate(()=>window.visualViewport?.scale||1);
+  if(tapScale>1.01)throw Error('Rapid page-turn taps magnified browser viewport: '+tapScale);
+  if(await mobile.locator('#zoomReset').innerText()!=='100%')throw Error('Rapid page-turn taps activated reader zoom');
+  console.log("MOBILE RAPID TAPS PASSED:",await mobile.locator('#pageStatus').innerText());
   await mobile.locator('#zoomIn').click();
   if(await mobile.locator('#zoomReset').innerText()!=='125%')throw Error('Mobile zoom not working');
   await mobile.locator('#zoomReset').click();
