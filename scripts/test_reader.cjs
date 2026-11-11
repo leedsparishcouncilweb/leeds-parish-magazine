@@ -60,7 +60,55 @@ const {chromium}=require('playwright');
   await page.locator('#issueList .issue-button').filter({hasText:'September 2026'}).click();
   await page.locator('#issueList .issue-button').filter({hasText:'October 2026'}).click();
   await waitForReady('October 2026');
-  if(errors.some(x=>x.startsWith('JS ')))throw Error("Browser errors: "+JSON.stringify(errors.slice(0,6)));
+  // Phone viewport: show one large page, with controls and selected edition intact.
+  const mobile=await browser.newPage({
+    viewport:{width:390,height:844},deviceScaleFactor:3,isMobile:true,hasTouch:true
+  });
+  mobile.on("pageerror",e=>errors.push("MOBILE JS "+String(e)));
+  await mobile.goto('http://127.0.0.1:8765/#edition=november-2026',{waitUntil:'domcontentloaded',timeout:30000});
+  await mobile.waitForFunction(()=>{
+    const loading=document.querySelector('#loading');
+    return loading?.hidden===true && document.querySelector('#totalPages')?.textContent?.includes('pages');
+  },null,{timeout:60000});
+  const metrics=await mobile.evaluate(()=>{
+    const rect=selector=>{
+      const el=document.querySelector(selector);
+      if(!el)return null;
+      const r=el.getBoundingClientRect();
+      return {x:Math.round(r.x),y:Math.round(r.y),width:Math.round(r.width),height:Math.round(r.height)};
+    };
+    return {
+      orientation:document.querySelector('#readerShell')?.dataset.orientation,
+      viewport:window.innerWidth,
+      surface:rect('.reading-surface'),
+      stage:rect('#bookStage'),
+      book:rect('#flipbook'),
+      firstCanvas:rect('.magazine-page canvas'),
+      title:rect('#editionTitle'),
+      numberOfCanvases:document.querySelectorAll('.magazine-page canvas').length
+    };
+  });
+  console.log("MOBILE METRICS:",JSON.stringify(metrics));
+  if(metrics.orientation!=='portrait')throw Error("Phone not in single-page portrait mode: "+JSON.stringify(metrics));
+  if(metrics.surface.width<340)throw Error("Mobile reader not full-width");
+  if(metrics.surface.y>395)throw Error("Excessive blank header space on phone");
+  if(metrics.surface.height>metrics.surface.width*1.65)throw Error("Excessive blank page surround");
+  await mobile.locator('#nextPage').click();
+  await mobile.waitForFunction(()=>document.querySelector('#pageStatus')?.textContent?.startsWith('Page 2'),null,{timeout:12000});
+  console.log("MOBILE PAGE TURN:",await mobile.locator('#pageStatus').innerText());
+  await mobile.locator('#zoomIn').click();
+  if(await mobile.locator('#zoomReset').innerText()!=='125%')throw Error('Mobile zoom not working');
+  await mobile.locator('#zoomReset').click();
+  await mobile.locator('#issueList .issue-button').filter({hasText:'October 2026'}).click();
+  await mobile.waitForFunction(()=>{
+    return document.querySelector('#editionTitle')?.textContent==='October 2026'
+      &&document.querySelector('#loading')?.hidden===true;
+  },null,{timeout:60000});
+  if(await mobile.locator('#readerShell').getAttribute('data-orientation')!=='portrait')
+    throw Error('Changing editions dropped mobile portrait mode');
+  console.log("MOBILE SWITCH PASSED");
+  await mobile.close();
+  if(errors.some(x=>x.startsWith('JS ')||x.startsWith('MOBILE JS ')))throw Error("Browser errors: "+JSON.stringify(errors.slice(0,6)));
   if(errors.length)console.warn("BROWSER DIAGNOSTICS:",JSON.stringify(errors.slice(0,10)));
   console.log("SMOKE TEST PASSED");
  }catch(e){
