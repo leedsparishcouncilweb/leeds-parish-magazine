@@ -8,7 +8,7 @@
 <title>Leeds & Broomfield | Parish Magazine</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <script>if(new URLSearchParams(location.search).get("embed")==="1")document.documentElement.classList.add("embedded");</script>
-<link rel="stylesheet" href="./styles.css?v=20261111-pdf-links-1">
+<link rel="stylesheet" href="./styles.css?v=20261111-embed-fit-1">
 </head>
 <body>
 <header class="site-header">
@@ -29,6 +29,11 @@
  <div class="layout">
   <section class="feature" aria-label="Magazine reader">
    <div class="feature-heading"><div><p id="editionKicker" class="eyebrow">LATEST EDITION</p><h2 id="editionTitle">Loading editions…</h2><p>Leeds & Broomfield Church & Village News</p></div><a id="originalPDF" class="original-link" href="#" target="_blank" rel="noopener"><span aria-hidden="true">↗</span> Original PDF</a></div>
+   <div class="embed-controls" aria-label="Embedded magazine controls">
+    <label for="embedEditionSelect">Edition</label>
+    <select id="embedEditionSelect" aria-label="Choose magazine edition"></select>
+    <a id="embedOpenFull" href="./" target="_blank" rel="noopener">Open full magazine ↗</a>
+   </div>
    <div class="reader-shell" id="readerShell">
     <div class="reading-surface">
      <button type="button" id="prevPage" class="page-arrow left" aria-label="Previous pages">‹</button>
@@ -64,6 +69,6 @@
 </main>
 <footer>LEEDS & BROOMFIELD <span>·</span> CHURCH & VILLAGE NEWS</footer>
 <script defer src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
-<script type="module" src="./app.js?v=20261111-pdf-links-1"></script>
+<script type="module" src="./app.js?v=20261111-embed-fit-1"></script>
 </body>
 </html>
