@@ -116,10 +116,16 @@ async function selectIssue(issue){
   }
   await draw(0,token);
   if(token!==state.token)return;
+  // StPageFlip chooses portrait when available width < 2 * minWidth.
+  // A 120px minimum let two tiny pages fit on phones. Make the mobile
+  // minimum larger than half the viewer to force a single readable page.
+  const phone=window.matchMedia("(max-width:770px)").matches;
+  const viewerWidth=$("bookViewport").clientWidth;
+  const minimumPageWidth=phone?Math.max(160,Math.ceil(viewerWidth*.65)):120;
   state.flip=new window.St.PageFlip($("flipbook"),{
-   width,height,size:"stretch",minWidth:120,minHeight:160,maxWidth:900,maxHeight:1200,
-   showCover:true,usePortrait:true,autoSize:true,mobileScrollSupport:false,
-   flippingTime:650,drawShadow:true,maxShadowOpacity:0.26,startPage:0
+   width,height,size:"stretch",minWidth:minimumPageWidth,minHeight:160,maxWidth:900,maxHeight:1200,
+   showCover:true,usePortrait:true,autoSize:true,mobileScrollSupport:phone,
+   flippingTime:phone?450:650,drawShadow:true,maxShadowOpacity:0.26,startPage:0
   });
   state.flip.on("flip",({data})=>{position(data);nearby(data,token)});
   state.flip.on("changeOrientation",()=>position(state.flip.getCurrentPageIndex()));
@@ -164,6 +170,7 @@ function position(index){
  if(!state.pdf||!state.flip)return;
  index=Math.max(0,Math.min(index,state.pdf.numPages-1));
  const landscape=state.flip.getOrientation()==="landscape";
+ $("readerShell").dataset.orientation=landscape?"landscape":"portrait";
  const last=state.pdf.numPages-1;
  $("pageStatus").textContent=index===0?"Front cover":(index===last?"Back cover":(landscape?"Pages "+(index+1)+"–"+Math.min(index+2,state.pdf.numPages):"Page "+(index+1)));
  $("pageSlider").value=index;$("prevPage").disabled=index===0;$("nextPage").disabled=index>=last;
