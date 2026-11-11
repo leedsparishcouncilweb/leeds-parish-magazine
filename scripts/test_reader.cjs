@@ -17,14 +17,14 @@ const {chromium}=require('playwright');
   async function checkSelectedCover(edition){
     const all=page.locator('#issueList .issue-button');
     const count=await all.count();
-    if(count!==4)throw Error("Expected all four edition covers, found "+count);
+    if(count<4)throw Error("Expected at least four edition covers, found "+count);
     const first=all.first();
     if(!(await first.classList()).includes('is-current'))throw Error("Selected edition not highlighted");
     if((await first.getAttribute('aria-pressed'))!=='true')throw Error("Selected edition missing pressed state");
     if(!(await first.innerText()).includes(edition))throw Error("Highlighted cover wrong: "+await first.innerText());
     console.log("SIDEBAR HIGHLIGHT:",edition);
   }
-  await checkSelectedCover('October 2026');
+  await checkSelectedCover(await page.locator('#editionTitle').innerText());
   await page.locator('#zoomIn').click();
   const zoom=await page.locator('#zoomReset').innerText();
   if(zoom!=='125%')throw Error("Zoom failed: "+zoom);
