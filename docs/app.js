@@ -51,9 +51,17 @@ async function selectIssue(issue){
  state.loadingTask=null;
  if(previousTask){try{void previousTask.destroy().catch(()=>{})}catch(e){}}
  const previousPdf=state.pdf;
+ const previousRenders=[...state.drawing.values()];
  state.pdf=null;
  if(state.flip){try{state.flip.destroy()}catch(e){console.warn(e)}state.flip=null}
- if(previousPdf){try{void previousPdf.destroy().catch(()=>{})}catch(e){console.warn(e)}}
+ // Do not cancel in-progress canvas renders abruptly: PDF.js reports that
+ // cancellation as an unhandled RenderingCancelledException in some browsers.
+ // Cleanup completes independently, so changing editions never waits for it.
+ if(previousPdf){
+  void Promise.allSettled(previousRenders)
+   .then(()=>previousPdf.destroy())
+   .catch(e=>console.warn("Old PDF cleanup:",e));
+ }
  if(token!==state.token)return;
  // PageFlip.destroy() deletes its own HTML container. Rebuild it for every edition.
  const stage=$("bookStage");
