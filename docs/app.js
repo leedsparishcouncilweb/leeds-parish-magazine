@@ -34,6 +34,12 @@ async function init(){
   state.issues=(data.issues||[]).filter(i=>i.url&&i.title).sort(sortIssues);
   $("syncStatus").textContent=state.issues.length+" magazine editions";
   if(!state.issues.length)throw Error("No magazine PDFs were found");
+  // In compact iframe mode, offer every edition without the long archive sidebar.
+  const embedSelect=$("embedEditionSelect");
+  embedSelect.replaceChildren(...state.issues.map(issue=>{
+   const option=document.createElement("option");
+   option.value=issue.id;option.textContent=issue.title;return option;
+  }));
   const requested=new URLSearchParams(location.hash.slice(1)).get("edition");
   const first=state.issues.find(i=>i.id===requested)||state.issues[0];
   await selectIssue(first);
@@ -119,7 +125,10 @@ async function selectIssue(issue){
  $("originalPDF").href=issue.sourceUrl||issue.url;$("loading").hidden=false;$("readerError").hidden=true;
  $("pageStatus").textContent="Front cover";$("totalPages").textContent="— pages";
  $("prevPage").disabled=true;$("nextPage").disabled=true;
- history.replaceState(null,"",location.pathname+location.search+"#edition="+encodeURIComponent(issue.id));archive();
+ history.replaceState(null,"",location.pathname+location.search+"#edition="+encodeURIComponent(issue.id));
+ $("embedEditionSelect").value=issue.id;
+ $("embedOpenFull").href="./#edition="+encodeURIComponent(issue.id);
+ archive();
  // Cancel previous downloads and dispose previous pages without blocking this edition.
  // In particular, waiting for old PDF.js renders to finish can stall switching.
  const previousTask=state.loadingTask;
@@ -263,6 +272,10 @@ $("prevPage").addEventListener("click",()=>pageTurn("prev"));
 $("nextPage").addEventListener("click",()=>pageTurn("next"));
 $("pageSlider").addEventListener("change",e=>goPage(Number(e.target.value)));
 $("editionSearch").addEventListener("input",archive);
+$("embedEditionSelect").addEventListener("change",e=>{
+ const issue=state.issues.find(item=>item.id===e.target.value);
+ if(issue)selectIssue(issue);
+});
 $("zoomIn").addEventListener("click",()=>changeZoom(.25));
 $("zoomOut").addEventListener("click",()=>changeZoom(-.25));
 $("zoomReset").addEventListener("click",resetInlineZoom);
