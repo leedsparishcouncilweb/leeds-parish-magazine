@@ -150,6 +150,37 @@ const {chromium}=require('playwright');
     throw Error('Changing editions dropped mobile portrait mode');
   console.log("MOBILE SWITCH PASSED");
   await mobile.close();
+  // Hugo Fox iframe checks: the entire book and toolbar must fit a short frame.
+  for(const frame of [{width:900,height:520},{width:390,height:600}]){
+    const embed=await browser.newPage({viewport:frame});
+    embed.on('pageerror',e=>errors.push('EMBED JS '+String(e)));
+    await embed.goto('http://127.0.0.1:8765/?embed=1#edition=november-2026',{waitUntil:'domcontentloaded',timeout:30000});
+    await embed.waitForFunction(()=>document.querySelector('#loading')?.hidden===true
+      &&document.querySelector('#totalPages')?.textContent?.includes('pages'),null,{timeout:60000});
+    const layout=await embed.evaluate(()=>{
+      const r=el=>{const b=el.getBoundingClientRect();return {top:b.top,bottom:b.bottom,width:b.width,height:b.height}};
+      return {
+        viewport:innerHeight,
+        bottom:r(document.querySelector('#reader-shell')||document.querySelector('#readerShell')).bottom,
+        surface:r(document.querySelector('.reading-surface')),
+        toolbar:r(document.querySelector('.reader-toolbar')),
+        hasControls:getComputedStyle(document.querySelector('.embed-controls')).display!=='none',
+        archiveHidden:getComputedStyle(document.querySelector('.archive')).display==='none',
+        selected:document.querySelector('#embedEditionSelect')?.value,
+        full:document.querySelector('#embedOpenFull')?.getAttribute('href')
+      };
+    });
+    console.log("EMBED LAYOUT:",JSON.stringify({frame,...layout}));
+    if(layout.bottom>frame.height+22)throw Error('Embedded reader clipped vertically '+JSON.stringify(layout));
+    if(!layout.hasControls||!layout.archiveHidden||layout.selected!=='november-2026')
+      throw Error('Embedded edition controls incorrect: '+JSON.stringify(layout));
+    if(!layout.full.includes('november-2026'))throw Error('Full-view link missing current edition');
+    await embed.locator('#embedEditionSelect').selectOption('october-2026');
+    await embed.waitForFunction(()=>document.querySelector('#editionTitle')?.textContent==='October 2026'
+      &&document.querySelector('#loading')?.hidden===true,null,{timeout:60000});
+    console.log("EMBED EDITION SWITCH:",frame.width,await embed.locator('#editionTitle').innerText());
+    await embed.close();
+  }
   if(errors.some(x=>x.startsWith('JS ')||x.startsWith('MOBILE JS ')))throw Error("Browser errors: "+JSON.stringify(errors.slice(0,6)));
   if(errors.length)console.warn("BROWSER DIAGNOSTICS:",JSON.stringify(errors.slice(0,10)));
   console.log("SMOKE TEST PASSED");
