@@ -22,18 +22,24 @@ async function init(){
 }
 function archive(){
  const term=$("editionSearch").value.toLowerCase().trim();
- const issues=state.issues.filter(i=>i.id!==state.selected?.id);
+ // Show the magazine being read as well as the older editions.
+ // Keep the selected edition at the top for a clear visual reference.
+ const issues=[...state.issues].sort((a,b)=>Number(b.id===state.selected?.id)-Number(a.id===state.selected?.id));
  const matches=issues.filter(i=>i.title.toLowerCase().includes(term));
  $("archiveCount").textContent=issues.length;
  $("archiveEmpty").hidden=matches.length>0;
  const list=$("issueList");list.replaceChildren();
  for(const issue of matches){
   const button=document.createElement("button");button.type="button";button.className="issue-button";
+  const current=issue.id===state.selected?.id;
+  if(current)button.classList.add("is-current");
+  button.setAttribute("aria-pressed",String(current));
+  button.setAttribute("aria-label",(current?"Currently open: ":"Open edition: ")+issue.title);
   const cover=document.createElement("div");cover.className="issue-cover";
   if(issue.cover){const img=document.createElement("img");img.src=issue.cover;img.alt="Cover of "+issue.title;img.loading="lazy";cover.append(img)}
   else cover.textContent="LEEDS & BROOMFIELD";
   const details=document.createElement("div");details.className="issue-info";
-  details.innerHTML='<span class="issue-tag">FROM THE ARCHIVE</span><span class="issue-name">'+safe(issue.title)+'</span><span class="issue-sub">Church & village news</span>';
+  details.innerHTML='<span class="issue-tag">'+(current?"CURRENTLY READING":"EDITION")+'</span><span class="issue-name">'+safe(issue.title)+'</span><span class="issue-sub">'+(current?"Open in reader":"Church & village news")+'</span>';
   button.append(cover,details);button.addEventListener("click",()=>selectIssue(issue));list.append(button);
  }
 }
