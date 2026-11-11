@@ -38,6 +38,22 @@ const {chromium}=require('playwright');
   await page.locator('#nextPage').click();
   await page.waitForTimeout(1000);
   console.log("AFTER PAGE TURN:",await page.locator('#pageStatus').innerText());
+  // November's selectable-text email and website must have live click targets.
+  const jump=async index=>{
+    await page.locator('#pageSlider').evaluate((node,n)=>{
+      node.value=String(n);
+      node.dispatchEvent(new Event('change',{bubbles:true}));
+    },index);
+  };
+  await jump(2); // printed page 3, editor's email address
+  await page.waitForFunction(()=>[...document.querySelectorAll('.magazine-link[href^="mailto:"]')]
+    .some(link=>link.href.toLowerCase().includes("pauline.silk@hotmail.co.uk")),null,{timeout:20000});
+  const mailLink=page.locator('.magazine-link[href*="pauline.silk@hotmail.co.uk"]').first();
+  console.log("EMAIL LINK:",await mailLink.getAttribute("href"));
+  await jump(5); // printed page 6, Church of England website
+  await page.waitForFunction(()=>[...document.querySelectorAll('.magazine-link[href^="http"]')]
+    .some(link=>link.href.toLowerCase().includes("churchofengland.org")),null,{timeout:20000});
+  console.log("WEB LINK:",await page.locator('.magazine-link[href*="churchofengland.org"]').first().getAttribute("href"));
   // Exercise multiple editions rather than only the latest cover.
   async function waitForReady(edition){
     await page.waitForFunction(()=>document.querySelector('#editionTitle')?.textContent===document.body.dataset.expectEdition
