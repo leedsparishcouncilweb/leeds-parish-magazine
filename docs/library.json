@@ -6,29 +6,37 @@
       "id": "october-2026",
       "title": "October 2026",
       "editionDate": "2026-10",
-      "url": "https://www.leedsparishcouncil.gov.uk/shared/attachments.asp?f=36320197-00d7-4b7f-aa68-ae94cba6bc5c.pdf&o=Leeds-%26-Broomfield-Oct-26-Digital.pdf",
-      "sourceUrl": "https://www.leedsparishcouncil.gov.uk/shared/attachments.asp?f=36320197-00d7-4b7f-aa68-ae94cba6bc5c.pdf&o=Leeds-%26-Broomfield-Oct-26-Digital.pdf"
+      "sourceTitle": "October 2026",
+      "url": "pdfs/october-2026-45506e428fbe.pdf",
+      "sourceUrl": "https://www.leedsparishcouncil.gov.uk/shared/attachments.asp?f=36320197-00d7-4b7f-aa68-ae94cba6bc5c.pdf&o=Leeds-%26-Broomfield-Oct-26-Digital.pdf",
+      "cover": "covers/october-2026-45506e428fbe.png"
     },
     {
       "id": "september-2026",
       "title": "September 2026",
       "editionDate": "2026-09",
-      "url": "https://www.leedsparishcouncil.gov.uk/shared/attachments.asp?f=c45d5a76-d09b-4918-b8ec-15a3b1101163.pdf&o=Leeds-%26-Broomfield-Sept-2026-digital.pdf",
-      "sourceUrl": "https://www.leedsparishcouncil.gov.uk/shared/attachments.asp?f=c45d5a76-d09b-4918-b8ec-15a3b1101163.pdf&o=Leeds-%26-Broomfield-Sept-2026-digital.pdf"
+      "sourceTitle": "September 2026",
+      "url": "pdfs/september-2026-4dfa63aa3ea1.pdf",
+      "sourceUrl": "https://www.leedsparishcouncil.gov.uk/shared/attachments.asp?f=c45d5a76-d09b-4918-b8ec-15a3b1101163.pdf&o=Leeds-%26-Broomfield-Sept-2026-digital.pdf",
+      "cover": "covers/september-2026-4dfa63aa3ea1.png"
     },
     {
       "id": "july-2026",
       "title": "July 2026",
       "editionDate": "2026-07",
-      "url": "https://www.leedsparishcouncil.gov.uk/shared/attachments.asp?f=fd891bf2-4786-41dd-a24b-a5d289901381.pdf&o=July-2026.pdf",
-      "sourceUrl": "https://www.leedsparishcouncil.gov.uk/shared/attachments.asp?f=fd891bf2-4786-41dd-a24b-a5d289901381.pdf&o=July-2026.pdf"
+      "sourceTitle": "July 2026",
+      "url": "pdfs/july-2026-8ac77b874aa9.pdf",
+      "sourceUrl": "https://www.leedsparishcouncil.gov.uk/shared/attachments.asp?f=fd891bf2-4786-41dd-a24b-a5d289901381.pdf&o=July-2026.pdf",
+      "cover": "covers/july-2026-8ac77b874aa9.png"
     },
     {
       "id": "august-2022",
       "title": "August 2022",
       "editionDate": "2022-08",
-      "url": "https://www.leedsparishcouncil.gov.uk/shared/attachments.asp?f=e39067e2-fc8c-4c45-b3ad-07c9d6f3d810.pdf&o=Aug-2022.pdf",
-      "sourceUrl": "https://www.leedsparishcouncil.gov.uk/shared/attachments.asp?f=e39067e2-fc8c-4c45-b3ad-07c9d6f3d810.pdf&o=Aug-2022.pdf"
+      "sourceTitle": "August 2022",
+      "url": "pdfs/august-2022-c37f71817eba.pdf",
+      "sourceUrl": "https://www.leedsparishcouncil.gov.uk/shared/attachments.asp?f=e39067e2-fc8c-4c45-b3ad-07c9d6f3d810.pdf&o=Aug-2022.pdf",
+      "cover": "covers/august-2022-c37f71817eba.png"
     }
   ]
 }
