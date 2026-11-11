@@ -55,7 +55,14 @@ async function selectIssue(issue){
  if(state.flip){try{state.flip.destroy()}catch(e){console.warn(e)}state.flip=null}
  if(previousPdf){try{void previousPdf.destroy().catch(()=>{})}catch(e){console.warn(e)}}
  if(token!==state.token)return;
- $("flipbook").replaceChildren();state.leaves=[];state.drawn.clear();state.drawing.clear();
+ // PageFlip.destroy() deletes its own HTML container. Rebuild it for every edition.
+ const stage=$("bookStage");
+ if(!stage)throw Error("Magazine stage is missing");
+ const newBook=document.createElement("div");
+ newBook.id="flipbook";
+ newBook.className="flipbook";
+ stage.replaceChildren(newBook);
+ state.leaves=[];state.drawn.clear();state.drawing.clear();
  try{
   const lib=await pdfLib();if(!window.St?.PageFlip)throw Error("Page-turn library unavailable");
   const task=lib.getDocument({url:issue.url});
