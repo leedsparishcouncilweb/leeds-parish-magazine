@@ -15,6 +15,12 @@ def links_from_page(source):
     html=response.text
     soup=BeautifulSoup(html,"html.parser")
     print("Source response:",response.status_code,"bytes:",len(html),"anchors:",len(soup.find_all("a")))
+    # Diagnostic: Hugo Fox file cards sometimes store URLs in custom markup.
+    # Keep logging short and avoid exposing cookies or other unrelated page HTML.
+    for phrase in ("Aug 2022.pdf","Oct 26 Digital.pdf","Sept 2026 digital.pdf","Nov-2026","November 2026"):
+        pos=html.lower().find(phrase.lower())
+        if pos!=-1:
+            print("Attachment markup around",phrase,repr(html[max(0,pos-950):pos+420]))
     result={}
     # Parse URLs in any HTML attributes, not only links: Hugo Fox sometimes
     # embeds attachment references in data attributes and script JSON.
