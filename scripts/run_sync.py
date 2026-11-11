@@ -27,6 +27,10 @@ def links_from_page(source):
         print("MAIN OUTER HTML:",str(main.parent if main.name=="a" else main)[:11000])
     print("SCRIPTS:",[(x.get("src") or "") for x in soup.find_all("script") if x.get("src")][-35:])
     print("HTML TAIL:",html[-3500:])
+    # Inspect only the public main content markup, no authentication data.
+    anchor=html.find('id="main-content-bookmark"')
+    if anchor!=-1:
+        print("PUBLIC MAIN CONTENT:",repr(html[anchor:anchor+11500]))
     result={}
     # Parse URLs in any HTML attributes, not only links: Hugo Fox sometimes
     # embeds attachment references in data attributes and script JSON.
