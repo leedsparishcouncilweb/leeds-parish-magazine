@@ -7,7 +7,10 @@ const {chromium}=require('playwright');
  page.on('console',e=>{if(e.type()==='error')errors.push('CONSOLE '+e.text())});
  page.on('requestfailed',r=>errors.push('NETWORK '+r.url()+' '+r.failure()?.errorText));
  try{
-  await page.goto('http://127.0.0.1:8765/',{waitUntil:'domcontentloaded',timeout:30000});
+  await page.goto('http://127.0.0.1:8765/?utm_source=chatgpt.com#edition=november-2026',{waitUntil:'domcontentloaded',timeout:30000});
+  await page.waitForFunction(()=>!location.search.includes('utm_source') && !location.hash.includes('utm_source'),null,{timeout:10000});
+  if(page.url().includes('chatgpt.com'))throw Error('ChatGPT referral parameter was not removed');
+  console.log('CLEAN URL:',page.url());
   await page.waitForFunction(()=>document.querySelector('#loading')?.hidden===true,null,{timeout:60000});
   const err=await page.locator('#readerError').evaluate(el=>!el.hidden);
   if(err)throw Error("Reader displayed error: "+await page.locator('#errorText').innerText());
