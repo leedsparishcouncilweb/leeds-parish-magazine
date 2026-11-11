@@ -7,6 +7,7 @@ on:
     branches: [main]
     paths:
       - 'scripts/sync_pdfs.py'
+      - 'scripts/run_sync.py'
       - 'docs/config.json'
       - '.github/workflows/sync-pdfs.yml'
 
@@ -28,7 +29,7 @@ jobs:
       - name: Install PDF processing tools
         run: pip install 'requests>=2.31,<3' 'beautifulsoup4>=4.12,<5' 'pymupdf>=1.24,<2'
       - name: Mirror official magazines and make covers
-        run: python scripts/sync_pdfs.py
+        run: python scripts/run_sync.py
       - name: Commit new and updated magazines
         run: |
           git config user.name 'github-actions[bot]'
