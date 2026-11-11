@@ -18,6 +18,7 @@ ROOT=Path(__file__).resolve().parents[1]
 DOCS=ROOT/"docs"
 PDFS=DOCS/"pdfs"
 COVERS=DOCS/"covers"
+LINKS=DOCS/"links"
 MANIFEST=DOCS/"library.json"
 CONFIG=DOCS/"config.json"
 MAX_BYTES=45*1024*1024
@@ -96,6 +97,69 @@ def cover_image(data,path):
         pix=page.get_pixmap(matrix=fitz.Matrix(scale,scale),alpha=False,colorspace=fitz.csRGB)
         path.write_bytes(pix.tobytes("png"))
 
+def link_map(data):
+    """Create clickable text-address and original annotation hitboxes in PDF page coordinates.
+
+    The PDF itself is unchanged. Positions are normalized so the HTML overlay
+    follows the magazine page at any desktop/mobile zoom or flip size.
+    """
+    import pymupdf
+    from urllib.parse import urlsplit
+    email_re=re.compile(r"[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9-]+(?:\\.[A-Za-z0-9-]+)+")
+    web_re=re.compile(r"(?i)(?:https?://|www\\.|facebook\\.com/)[^\\s<>\\\"']+")
+    pages={}
+    def valid_url(candidate):
+        candidate=candidate.strip().rstrip(".,;:!?)]}")
+        if not candidate:return None
+        if candidate.lower().startswith("mailto:"):
+            addr=candidate[7:]
+            return candidate if email_re.fullmatch(addr) else None
+        if email_re.fullmatch(candidate):return "mailto:"+candidate
+        if candidate.lower().startswith(("www.","facebook.com/")):candidate="https://"+candidate
+        try:
+            parsed=urlsplit(candidate)
+            if parsed.scheme.lower() not in ("http","https") or not parsed.hostname or "." not in parsed.hostname:return None
+            return candidate
+        except ValueError:return None
+    with pymupdf.open(stream=data,filetype="pdf") as pdf:
+        for page in pdf:
+            pw,ph=page.rect.width,page.rect.height
+            hits=[]
+            def add(url,rect,label,source):
+                url=valid_url(url)
+                if not url or not rect:return
+                x0,y0,x1,y1=[float(z) for z in rect]
+                if x1<=x0 or y1<=y0:return
+                # Clamp to the visible PDF page (words occasionally spill outside).
+                box=[round(max(0,min(1,v)),5) for v in (x0/pw,y0/ph,x1/pw,y1/ph)]
+                if box[2]-box[0]<.003 or box[3]-box[1]<.002:return
+                # Prefer native annotations when the address itself is also detected.
+                for prev in hits:
+                    if prev["href"]==url:
+                        q=prev["box"]
+                        overlap=max(0,min(box[2],q[2])-max(box[0],q[0]))*max(0,min(box[3],q[3])-max(box[1],q[1]))
+                        size=(box[2]-box[0])*(box[3]-box[1])
+                        if overlap/max(size,1e-10)>.55:return
+                hits.append({"href":url,"box":box,"label":label[:180],"source":source})
+            for annot in page.get_links():
+                uri=annot.get("uri")
+                if uri and annot.get("from"):add(uri,annot["from"],uri,"annotation")
+            for word in page.get_text("words"):
+                x0,y0,x1,y1,txt=word[:5]
+                # Embedded vector text, not OCR: no guessing from ads/photos.
+                for pattern in (email_re,web_re):
+                    for match in pattern.finditer(txt):
+                        matched=match.group().rstrip(".,;:!?)]}")
+                        if not matched:continue
+                        # Bound the clickable area to the matched part of a word
+                        # (e.g. Website-www.example.com).
+                        width=max(1,len(txt))
+                        a=x0+(x1-x0)*match.start()/width
+                        b=x0+(x1-x0)*(match.start()+len(matched))/width
+                        add(matched,(a,y0,b,y1),matched,"text")
+            if hits:pages[str(page.number+1)]=hits
+    return {"version":1,"pages":pages}
+
 def slug(text):
     return re.sub(r"[^a-z0-9]+","-",text.lower()).strip("-")[:60] or "magazine"
 
@@ -108,6 +172,7 @@ def main():
         return 1
     PDFS.mkdir(parents=True,exist_ok=True)
     COVERS.mkdir(parents=True,exist_ok=True)
+    LINKS.mkdir(parents=True,exist_ok=True)
     previous=json.loads(MANIFEST.read_text(encoding="utf-8")) if MANIFEST.exists() else {"issues":[]}
     cache={i.get("sourceUrl"):i for i in previous.get("issues",[])}
     issues=[]
@@ -128,10 +193,13 @@ def main():
             digest=hashlib.sha256(data).hexdigest()[:12]
             pdfname=f"{name}-{digest}.pdf"
             covername=f"{name}-{digest}.png"
+            linksname=f"{name}-{digest}.json"
             if not (PDFS/pdfname).exists():(PDFS/pdfname).write_bytes(data)
             if not (COVERS/covername).exists():cover_image(data,COVERS/covername)
+            if not (LINKS/linksname).exists():
+                (LINKS/linksname).write_text(json.dumps(link_map(data),ensure_ascii=False,separators=(",",":")),encoding="utf-8")
             issues.append({"id":ident,"title":title,"editionDate":date,"sourceTitle":label,
-                           "url":"pdfs/"+pdfname,"sourceUrl":url,"cover":"covers/"+covername})
+                           "url":"pdfs/"+pdfname,"sourceUrl":url,"cover":"covers/"+covername,"links":"links/"+linksname})
             print(f"[{n}/{len(discovered)}] {title}: {len(data)//1024} KiB")
         except Exception as exc:
             errors+=1
