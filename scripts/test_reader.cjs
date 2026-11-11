@@ -14,6 +14,17 @@ const {chromium}=require('playwright');
   const count=await page.locator('#totalPages').innerText();
   if(!count.includes("pages")||count.startsWith("—"))throw Error("Page count not loaded: "+count);
   console.log("PDF LOADED:",count);
+  async function checkSelectedCover(edition){
+    const all=page.locator('#issueList .issue-button');
+    const count=await all.count();
+    if(count!==4)throw Error("Expected all four edition covers, found "+count);
+    const first=all.first();
+    if(!(await first.classList()).includes('is-current'))throw Error("Selected edition not highlighted");
+    if((await first.getAttribute('aria-pressed'))!=='true')throw Error("Selected edition missing pressed state");
+    if(!(await first.innerText()).includes(edition))throw Error("Highlighted cover wrong: "+await first.innerText());
+    console.log("SIDEBAR HIGHLIGHT:",edition);
+  }
+  await checkSelectedCover('October 2026');
   await page.locator('#zoomIn').click();
   const zoom=await page.locator('#zoomReset').innerText();
   if(zoom!=='125%')throw Error("Zoom failed: "+zoom);
@@ -34,6 +45,7 @@ const {chromium}=require('playwright');
       throw Error('Reader error after switching to '+edition+': '+await page.locator('#errorText').innerText());
     }
     console.log("SWITCH OK:",edition,await page.locator('#totalPages').innerText());
+    await checkSelectedCover(edition);
   }
   for(const edition of ['September 2026','July 2026','August 2022','October 2026']){
     await page.evaluate(s=>document.body.dataset.expectEdition=s,edition);
