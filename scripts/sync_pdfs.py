@@ -105,8 +105,8 @@ def link_map(data):
     """
     import pymupdf
     from urllib.parse import urlsplit
-    email_re=re.compile(r"[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9-]+(?:\\.[A-Za-z0-9-]+)+")
-    web_re=re.compile(r"(?i)(?:https?://|www\\.|facebook\\.com/)[^\\s<>\\\"']+")
+    email_re=re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+")
+    web_re=re.compile(r"""(?i)(?:https?://|www\.|facebook\.com/)[^\s<>"']+""")
     pages={}
     def valid_url(candidate):
         candidate=candidate.strip().rstrip(".,;:!?)]}")
@@ -158,7 +158,7 @@ def link_map(data):
                         b=x0+(x1-x0)*(match.start()+len(matched))/width
                         add(matched,(a,y0,b,y1),matched,"text")
             if hits:pages[str(page.number+1)]=hits
-    return {"version":1,"pages":pages}
+    return {"version":2,"pages":pages}
 
 def slug(text):
     return re.sub(r"[^a-z0-9]+","-",text.lower()).strip("-")[:60] or "magazine"
@@ -196,8 +196,13 @@ def main():
             linksname=f"{name}-{digest}.json"
             if not (PDFS/pdfname).exists():(PDFS/pdfname).write_bytes(data)
             if not (COVERS/covername).exists():cover_image(data,COVERS/covername)
-            if not (LINKS/linksname).exists():
-                (LINKS/linksname).write_text(json.dumps(link_map(data),ensure_ascii=False,separators=(",",":")),encoding="utf-8")
+            link_path=LINKS/linksname
+            try:
+                link_version=json.loads(link_path.read_text(encoding="utf-8")).get("version") if link_path.exists() else 0
+            except (ValueError,OSError):
+                link_version=0
+            if link_version!=2:
+                link_path.write_text(json.dumps(link_map(data),ensure_ascii=False,separators=(",",":")),encoding="utf-8")
             issues.append({"id":ident,"title":title,"editionDate":date,"sourceTitle":label,
                            "url":"pdfs/"+pdfname,"sourceUrl":url,"cover":"covers/"+covername,"links":"links/"+linksname})
             print(f"[{n}/{len(discovered)}] {title}: {len(data)//1024} KiB")
