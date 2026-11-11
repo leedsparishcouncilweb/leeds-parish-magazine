@@ -1,4 +1,23 @@
 
+// Remove tracking parameters added to inbound links, without touching
+// functional parameters such as ?embed=1 or #edition=november-2026.
+function stripReferralTracking(){
+ const url=new URL(location.href);
+ let changed=false;
+ const isTracking=(key,val)=>/^utm_/i.test(key)||(["ref","source"].includes(key.toLowerCase())&&/chatgpt/i.test(val));
+ for(const [key,value] of [...url.searchParams.entries()]){
+  if(isTracking(key,value)){url.searchParams.delete(key);changed=true}
+ }
+ if(url.hash.startsWith("#edition=")){
+  const fragment=new URLSearchParams(url.hash.slice(1));
+  for(const [key,value] of [...fragment.entries()]){
+   if(isTracking(key,value)){fragment.delete(key);changed=true}
+  }
+  if(changed)url.hash="#"+fragment.toString();
+ }
+ if(changed)history.replaceState(history.state,"",url.pathname+url.search+url.hash);
+}
+stripReferralTracking();
 const $=id=>document.getElementById(id);
 const state={issues:[],selected:null,pdf:null,flip:null,token:0,leaves:[],drawn:new Set(),drawing:new Map(),pdfjs:null,loadingTask:null,zoomRender:null,zoomPage:0,zoomScale:1};
 const pdfLib=async()=>{if(!state.pdfjs){const lib=await import("https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs");lib.GlobalWorkerOptions.workerSrc="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs";state.pdfjs=lib}return state.pdfjs};
