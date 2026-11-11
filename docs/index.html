@@ -8,7 +8,7 @@
 <title>Leeds & Broomfield | Parish Magazine</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <script>if(new URLSearchParams(location.search).get("embed")==="1")document.documentElement.classList.add("embedded");</script>
-<link rel="stylesheet" href="./styles.css?v=20261111-switchfix-2">
+<link rel="stylesheet" href="./styles.css?v=20261111-switchfix-3">
 </head>
 <body>
 <header class="site-header">
@@ -32,10 +32,11 @@
    <div class="reader-shell" id="readerShell">
     <div class="reading-surface">
      <button type="button" id="prevPage" class="page-arrow left" aria-label="Previous pages">‹</button>
-     <div id="bookViewport" class="book-viewport"><div id="bookStage" class="book-stage"><div id="flipbook" class="flipbook"></div>
+     <div id="bookViewport" class="book-viewport">
+      <div id="bookStage" class="book-stage"><div id="flipbook" class="flipbook"></div></div>
       <div id="loading" class="reader-message"><span class="spinner"></span><span>Opening magazine…</span></div>
       <div id="readerError" class="reader-message" hidden><strong>Preview not available</strong><span id="errorText">Please open the original PDF.</span><a id="errorLink" href="#" target="_blank" rel="noopener">Open original PDF ↗</a></div>
-     </div></div>
+     </div>
      <button type="button" id="nextPage" class="page-arrow right" aria-label="Next pages">›</button>
     </div>
     <div class="reader-toolbar">
@@ -63,6 +64,6 @@
 </main>
 <footer>LEEDS & BROOMFIELD <span>·</span> CHURCH & VILLAGE NEWS</footer>
 <script defer src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
-<script type="module" src="./app.js?v=20261111-switchfix-2"></script>
+<script type="module" src="./app.js?v=20261111-switchfix-3"></script>
 </body>
 </html>
