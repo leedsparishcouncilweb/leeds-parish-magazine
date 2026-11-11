@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#173e32">
+<meta name="description" content="Read Leeds and Broomfield's Church & Village News in a page-turning digital magazine.">
+<title>Leeds & Broomfield | Parish Magazine</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<header class="site-header">
+ <a href="./" class="brand" aria-label="Leeds and Broomfield magazine home">
+  <span class="brand-mark">L<span>&</span>B</span>
+  <span>LEEDS <em>&</em> BROOMFIELD<small>CHURCH & VILLAGE NEWS</small></span>
+ </a>
+ <a class="back-link" href="https://www.leedsparishcouncil.gov.uk/community/leeds-parish-council-18464/parish-news/" target="_blank" rel="noopener">Parish Council website ↗</a>
+</header>
+<div class="top-strip"><span>LOCAL STORIES &nbsp;·&nbsp; COMMUNITY NEWS &nbsp;·&nbsp; VILLAGE LIFE</span><span id="syncStatus">Parish magazine archive</span></div>
+<main class="site-main">
+ <section class="introduction">
+  <div><p class="eyebrow">THE DIGITAL EDITION <span>────</span> LEEDS & BROOMFIELD</p>
+   <h1>Our village, <em>in print.</em></h1>
+   <p class="intro-text">Read the parish magazine just as you would in print. Turn the pages of the latest edition, or browse past issues.</p>
+  </div><div class="intro-ornament" aria-hidden="true">L<span>&</span>B</div>
+ </section>
+ <div class="layout">
+  <section class="feature" aria-label="Magazine reader">
+   <div class="feature-heading"><div><p id="editionKicker" class="eyebrow">LATEST EDITION</p><h2 id="editionTitle">Loading editions…</h2><p>Leeds & Broomfield Church & Village News</p></div><a id="originalPDF" class="original-link" href="#" target="_blank" rel="noopener"><span aria-hidden="true">↗</span> Original PDF</a></div>
+   <div class="reader-shell" id="readerShell">
+    <div class="reading-surface">
+     <button type="button" id="prevPage" class="page-arrow left" aria-label="Previous pages">‹</button>
+     <div id="bookStage" class="book-stage"><div id="flipbook" class="flipbook"></div>
+      <div id="loading" class="reader-message"><span class="spinner"></span><span>Opening magazine…</span></div>
+      <div id="readerError" class="reader-message" hidden><strong>Preview not available</strong><span id="errorText">Please open the original PDF.</span><a id="errorLink" href="#" target="_blank" rel="noopener">Open original PDF ↗</a></div>
+     </div>
+     <button type="button" id="nextPage" class="page-arrow right" aria-label="Next pages">›</button>
+    </div>
+    <div class="reader-toolbar">
+     <span id="pageStatus">Front cover</span>
+     <input type="range" min="0" max="1" value="0" id="pageSlider" aria-label="Go to magazine page">
+     <span id="totalPages">— pages</span>
+     <button type="button" id="zoomOpen" title="Enlarge page" aria-label="Enlarge page">⤢</button>
+     <button type="button" id="fullScreen" title="Full screen" aria-label="Full screen">⛶</button>
+    </div>
+   </div>
+   <p class="hint">Turn pages with the arrows, drag a page corner, or use the keyboard. The cover appears alone; inside pages automatically open as facing spreads on larger screens.</p>
+  </section>
+  <aside class="archive" aria-label="Previous magazines">
+   <div class="archive-top"><div><p class="eyebrow">EXPLORE THE ARCHIVE</p><h2>Previous editions</h2></div><span class="archive-number" id="archiveCount">0</span></div>
+   <label class="search-wrapper"><span aria-hidden="true">⌕</span><input id="editionSearch" type="search" placeholder="Find an edition…" aria-label="Search past editions"></label>
+   <div id="issueList" class="issue-list"></div><p id="archiveEmpty" hidden>No matching editions.</p>
+   <div class="sync-note"><span aria-hidden="true">↻</span><p><strong>Automatically updated</strong><br>New PDFs are collected from the Parish Council's magazine page. There is no second upload.</p></div>
+  </aside>
+ </div>
+ <div class="bottom-note">Magazine PDFs remain available on the <a href="https://www.leedsparishcouncil.gov.uk/community/leeds-parish-council-18464/parish-news/" target="_blank" rel="noopener">original Parish Council archive ↗</a>.</div>
+</main>
+<footer>LEEDS & BROOMFIELD <span>·</span> CHURCH & VILLAGE NEWS</footer>
+<div id="zoomDialog" class="zoom-dialog" hidden role="dialog" aria-modal="true" aria-label="Enlarged magazine page">
+ <div class="zoom-controls"><span id="zoomPageTitle">Page</span><div><button id="zoomOut" aria-label="Zoom out">−</button><span id="zoomLevel">100%</span><button id="zoomIn" aria-label="Zoom in">+</button><button id="zoomClose" aria-label="Close">✕</button></div></div>
+ <div class="zoom-scroll"><canvas id="zoomCanvas"></canvas></div>
+</div>
+<script defer src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
+<script type="module" src="./app.js"></script>
+</body>
+</html>
