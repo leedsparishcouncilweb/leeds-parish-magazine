@@ -19,7 +19,7 @@ const {chromium}=require('playwright');
     const count=await all.count();
     if(count<4)throw Error("Expected at least four edition covers, found "+count);
     const first=all.first();
-    if(!(await first.classList()).includes('is-current'))throw Error("Selected edition not highlighted");
+    if(!(await first.getAttribute('class')||'').split(/\s+/).includes('is-current'))throw Error("Selected edition not highlighted");
     if((await first.getAttribute('aria-pressed'))!=='true')throw Error("Selected edition missing pressed state");
     if(!(await first.innerText()).includes(edition))throw Error("Highlighted cover wrong: "+await first.innerText());
     console.log("SIDEBAR HIGHLIGHT:",edition);
