@@ -32,21 +32,25 @@
    <div class="reader-shell" id="readerShell">
     <div class="reading-surface">
      <button type="button" id="prevPage" class="page-arrow left" aria-label="Previous pages">‹</button>
-     <div id="bookStage" class="book-stage"><div id="flipbook" class="flipbook"></div>
+     <div id="bookViewport" class="book-viewport"><div id="bookStage" class="book-stage"><div id="flipbook" class="flipbook"></div>
       <div id="loading" class="reader-message"><span class="spinner"></span><span>Opening magazine…</span></div>
       <div id="readerError" class="reader-message" hidden><strong>Preview not available</strong><span id="errorText">Please open the original PDF.</span><a id="errorLink" href="#" target="_blank" rel="noopener">Open original PDF ↗</a></div>
-     </div>
+     </div></div>
      <button type="button" id="nextPage" class="page-arrow right" aria-label="Next pages">›</button>
     </div>
     <div class="reader-toolbar">
      <span id="pageStatus">Front cover</span>
      <input type="range" min="0" max="1" value="0" id="pageSlider" aria-label="Go to magazine page">
      <span id="totalPages">— pages</span>
-     <button type="button" id="zoomOpen" title="Enlarge page" aria-label="Enlarge page">⤢</button>
+     <div class="inline-zoom" role="group" aria-label="Zoom magazine spread">
+      <button type="button" id="zoomOut" title="Zoom out" aria-label="Zoom out" disabled>−</button>
+      <button type="button" id="zoomReset" class="zoom-value" title="Reset zoom to fit" aria-label="Reset zoom to fit">100%</button>
+      <button type="button" id="zoomIn" title="Zoom in" aria-label="Zoom in">+</button>
+     </div>
      <button type="button" id="fullScreen" title="Full screen" aria-label="Full screen">⛶</button>
     </div>
    </div>
-   <p class="hint">Turn pages with the arrows, drag a page corner, or use the keyboard. The cover appears alone; inside pages automatically open as facing spreads on larger screens.</p>
+   <p class="hint">Turn pages with the arrows, drag a page corner, or use the keyboard. Use + and − to zoom directly into a spread; drag to move around while zoomed, or select the percentage to reset. Page turns return to fit view.</p>
   </section>
   <aside class="archive" aria-label="Previous magazines">
    <div class="archive-top"><div><p class="eyebrow">EXPLORE THE ARCHIVE</p><h2>Previous editions</h2></div><span class="archive-number" id="archiveCount">0</span></div>
@@ -58,10 +62,6 @@
  <div class="bottom-note">Magazine PDFs remain available on the <a href="https://www.leedsparishcouncil.gov.uk/community/leeds-parish-council-18464/parish-news/" target="_blank" rel="noopener">original Parish Council archive ↗</a>.</div>
 </main>
 <footer>LEEDS & BROOMFIELD <span>·</span> CHURCH & VILLAGE NEWS</footer>
-<div id="zoomDialog" class="zoom-dialog" hidden role="dialog" aria-modal="true" aria-label="Enlarged magazine page">
- <div class="zoom-controls"><span id="zoomPageTitle">Page</span><div><button id="zoomOut" aria-label="Zoom out">−</button><span id="zoomLevel">100%</span><button id="zoomIn" aria-label="Zoom in">+</button><button id="zoomClose" aria-label="Close">✕</button></div></div>
- <div class="zoom-scroll"><canvas id="zoomCanvas"></canvas></div>
-</div>
 <script defer src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
 <script type="module" src="./app.js"></script>
 </body>
